@@ -28,8 +28,14 @@ jobs:
         username: ${{ secrets.VM_USER }}
         key: ${{ secrets.VM_KEY }}
         script: |
-          # Create docker network
+          echo "Creating docker network (if not exists)"
           docker network create devops-net || true
+
+          echo "Pulling latest image"
           docker pull ${{ secrets.DOCKER_USERNAME }}/devops-webapp
+
+          echo "Stopping and removing old container if exists"
           docker stop webapp || true && docker rm webapp || true
+
+          echo "Running new container on devops-net"
           docker run -d --name webapp --network devops-net -p 80:5000 ${{ secrets.DOCKER_USERNAME }}/devops-webapp
