@@ -22,7 +22,7 @@ Go to your GitHub repo → Settings → Secrets and Variables → Actions and ad
 | VM_HOST | Public IP of your Azure VM |
 | VM_USER | SSH username (usually azureuser) |
 | VM_KEY | Your private SSH key |
-
+### Note: Update VM_USER, VM_HOST, VM password accordingly
 ## Set Up Azure VM
 
 ### Create an Azure VM (Ubuntu)
