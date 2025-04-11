@@ -28,6 +28,8 @@ jobs:
         username: ${{ secrets.VM_USER }}
         key: ${{ secrets.VM_KEY }}
         script: |
+          # Create docker network
+          docker network create devops-net || true
           docker pull ${{ secrets.DOCKER_USERNAME }}/devops-webapp
           docker stop webapp || true && docker rm webapp || true
-          docker run -d -p 80:5000 --name webapp ${{ secrets.DOCKER_USERNAME }}/devops-webapp
+          docker run -d --name webapp --network devops-net -p 80:5000 ${{ secrets.DOCKER_USERNAME }}/devops-webapp
