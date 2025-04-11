@@ -127,21 +127,21 @@ docker run -d --name cadvisor \
 ```
 
 ### Step 7: Access Grafana on Browser
-Open: http://<your-azure-vm-ip>:3000
+Open: http://&lt;your-azure-vm-ip&gt;:3000
 
 Default login:
 - User: admin
 - Password: admin (you'll be prompted to change)
 
 Confirm Everything Works
-1. http://<vm-ip>:5000/metrics → Should show Flask app metrics
-2. http://<vm-ip>:9090/targets → Prometheus should show flask-app:5000 and cadvisor:9323 as UP
-3. http://<vm-ip>:3000 → Grafana dashboard
+1. http://&lt;vm-ip&gt;:5000/metrics → Should show Flask app metrics
+2. http://&lt;vm-ip&gt;:9090/targets → Prometheus should show flask-app:5000 and cadvisor:9323 as UP
+3. http://&lt;vm-ip&gt;:3000 → Grafana dashboard
 
 ### Step 8: Connect Prometheus as Grafana Data Source
 In Grafana:
 1. Go to Settings → Data Sources → Add Prometheus
-2. URL: http://<az-vm-ip>:9090
+2. URL: http://&lt;az-vm-ip&gt;:9090
 3. Click Save & Test
 
 ### Step 9: Import a Dashboard
