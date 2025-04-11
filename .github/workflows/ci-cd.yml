@@ -1,63 +1,33 @@
 name: CI/CD Pipeline
+
 on:
   push:
-    branches: [main]
+    branches: [ main ]
+
 jobs:
-  build-and-deploy: 
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/devops-webapp .
-      - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/devops-webapp
-      - name: Build and push prometheus image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/custom-prometheus ./prometheus
-          docker push ${{ secrets.DOCKER_USERNAME }}/custom-prometheus
-      - name: SSH into Azure VM and deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_KEY }}
-          script: |
-            # Create network if not exists
-            docker network create devops-net || true
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-            # Pull Latest Images
-            docker pull ${{ secrets.DOCKER_USERNAME }}/devops-webapp
-            docker pull ${{ secrets.DOCKER_USERNAME }}/custom-prometheus
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-            # Stop Old containers
-            docker stop web-app || true && docker rm web-app || true
-            docker stop prometheus || true && docker rm prometheus || true
-            docker stop grafana || true && docker rm grafana || true
-            docker stop cadvisor || true && docker rm cadvisor || true
-            
-            # Run new containers in same network
-            docker run -d --name web-app --network devops-net -p 5000:5000 ${{ secrets.DOCKER_USERNAME }}/devops-webapp
-            # RUN Prometheus (Custom image with prometheus.yml baked in)
-            docker run -d --name prometheus --network devops-net -p 9090:9090 ${{ secrets.DOCKER_USERNAME }}/custom-prometheus
+    - name: Build Docker image
+      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/devops-webapp .
 
+    - name: Push Docker image
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/devops-webapp
 
-            # Start Grafana if not running
-            docker run -d --name=grafana \
-              --network devops-net \
-              -p 3000:3000 \
-              grafana/grafana
-
-            # Start cAdvisor for metrics
-            docker ps -q -f name=cadvisor || docker run -d \
-              --name cadvisor \
-              --network devops-net \
-              -p 9323:9323 \
-              -v /var/run/docker.sock:/var/run/docker.sock \
-              -v /:/rootfs:ro \
-              -v /var/run:/var/run:ro \
-              -v /sys:/sys:ro \
-              -v /var/lib/docker/:/var/lib/docker:ro \
-              google/cadvisor:latest
+    - name: SSH into Azure VM and deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USER }}
+        key: ${{ secrets.VM_KEY }}
+        script: |
+          docker pull ${{ secrets.DOCKER_USERNAME }}/devops-webapp
+          docker stop webapp || true && docker rm webapp || true
+          docker run -d -p 80:5000 --name webapp ${{ secrets.DOCKER_USERNAME }}/devops-webapp
