@@ -149,6 +149,18 @@ In Grafana:
 2. Paste Dashboard ID: 193 (Docker metrics)
 3. Click Load → Select Prometheus as data source → Import
 
+### For Flask app Metrics
+1. Go to Create → Dashboard → Add a panel
+
+2. Enter metric like:
+```
+flask_exporter_info
+```
+3. Customize and save the panel
+
+![image](https://github.com/user-attachments/assets/83cae64a-df96-4df2-8f32-4e67383bcd3d)
+
+
 ## Notes
 
 ### Understanding Prometheus Configuration
