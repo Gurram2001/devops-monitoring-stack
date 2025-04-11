@@ -58,55 +58,73 @@ mkdir ~/monitoring && cd ~/monitoring
 
 ### Step 3: Create Prometheus config file
 Create a file named `prometheus.yml`:
+See example from my prometheus folder
 ```yaml
 global:
   scrape_interval: 15s
 scrape_configs:
-  - job_name: 'docker'
+  - job_name: 'flask-app'
     static_configs:
-      - targets: ['localhost:9323']
+      - targets: ['web-app:5000']
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:9323']
 ```
-
-### Step 4: Run Prometheus and Grafana in Docker
+### Step 4: Create Docker Network
+Docker network helps the containers in docker to communicate with each, this docker network is used among all.
+Create docker network if not created. It is created in `Github Actions` ci-cd pipeline. Check with this command. `
+```bash
+docker network create devops-net
+```
+### Step 5: Run Prometheus and Grafana in Docker
 ```bash
 # Run Prometheus
-docker run -d \
+docker run -d --name prometheus \
+  --network devops-net \
   -p 9090:9090 \
   -v ~/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml \
-  --name prometheus \
   prom/prometheus
 
 # Run Grafana
-docker run -d \
+docker run -d --name grafana \
+  --network devops-net \
   -p 3000:3000 \
-  --name=grafana \
   grafana/grafana
 ```
 
-### Step 5: Install Docker Metrics Exporter
+### Step 6: (Optional) Install Docker Metrics Exporter
 Prometheus needs metrics from Docker – install this exporter:
 ```bash
-docker run -d \
+docker run -d --name cadvisor \
+  --network devops-net \
   -p 9323:9323 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  --name cadvisor \
+  -v /:/rootfs:ro \
+  -v /var/run:/var/run:ro \
+  -v /sys:/sys:ro \
+  -v /var/lib/docker/:/var/lib/docker:ro \
   google/cadvisor:latest
 ```
 
-### Step 6: Access Grafana on Browser
+### Step 7: Access Grafana on Browser
 Open: http://<your-azure-vm-ip>:3000
 
 Default login:
 - User: admin
 - Password: admin (you'll be prompted to change)
 
-### Step 7: Connect Prometheus as Grafana Data Source
+Confirm Everything Works
+1. http://<vm-ip>:5000/metrics → Should show Flask app metrics
+2. http://<vm-ip>:9090/targets → Prometheus should show flask-app:5000 and cadvisor:9323 as UP
+3. http://<vm-ip>:3000 → Grafana dashboard
+
+### Step 8: Connect Prometheus as Grafana Data Source
 In Grafana:
 1. Go to Settings → Data Sources → Add Prometheus
-2. URL: http://localhost:9090
+2. URL: http://<az-vm-ip>:9090
 3. Click Save & Test
 
-### Step 8: Import a Dashboard
+### Step 9: Import a Dashboard
 1. Go to + → Import
 2. Paste Dashboard ID: 193 (Docker metrics)
 3. Click Load → Select Prometheus as data source → Import
