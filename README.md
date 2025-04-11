@@ -51,13 +51,21 @@ docker run hello-world
 ssh azureuser@<your-azure-vm-ip>
 ```
 
-### Step 2: Create a monitoring folder
+### Step 2: Go to prometheus folder
 ```bash
-mkdir ~/monitoring && cd ~/monitoring
+cd prometheus
 ```
 
 ### Step 3: Create Prometheus config file
-Create a file named `prometheus.yml`:
+Observe file named `prometheus.yml`: 
+Importance of prometheus.yml: 
+1. Its is main configuration file for prometheus
+2. Prometheus doesn't magically know what to monitor - it needs this configure to define:
+   * Which target(apps/container/hosts) to scrape
+   * Howfrequently to scrape them
+3. Tells prometheus what to monitor.
+   
+Thus file place crucial role. It helps 
 See example from my prometheus folder
 ```yaml
 global:
@@ -70,11 +78,23 @@ scrape_configs:
     static_configs:
       - targets: ['cadvisor:9323']
 ```
-### Step 4: Create Docker Network
-Docker network helps the containers in docker to communicate with each, this docker network is used among all.
-Create docker network if not created. It is created in `Github Actions` ci-cd pipeline. Check with this command. `
+### Step 4: Docker Network
+Docker network helps the containers in docker to communicate with each, this docker network is used among all. It is used of service discovery, as containers can reach each other by name.
+Create docker network if not created. It is created in `Github Actions` ci-cd pipeline. Check with this command. 
 ```bash
-docker network create devops-net
+docker network ls
+```
+You will output like
+```
+NETWORK ID     NAME           DRIVER    SCOPE
+2c0c2e5e7a0b   bridge         bridge    local
+d38e6e1e8abc   host           host      local
+8f3e7f6ef02f   none           null      local
+3c1e6fc7d0de   devops-net     bridge    local
+```
+If it is not created, create one
+```bash
+docker network create docker-net
 ```
 ### Step 5: Run Prometheus and Grafana in Docker
 ```bash
