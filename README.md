@@ -23,6 +23,7 @@ Go to your GitHub repo → Settings → Secrets and Variables → Actions and ad
 | VM_USER | SSH username (usually azureuser) |
 | VM_KEY | Your private SSH key |
 ### Note: Update VM_USER, VM_HOST, VM password accordingly
+### Note: Make sure - the content of public key matches with authorized-key section. If not, copy the content of public key (.pub) to authorized key section in VM
 ## Set Up Azure VM
 
 ### Create an Azure VM (Ubuntu)
